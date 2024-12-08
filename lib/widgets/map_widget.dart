@@ -76,6 +76,7 @@ class _MapWidgetState extends State<MapWidget> {
               onMapCreated: (GoogleMapController controller) {
                 _controller = controller;
               },
+              myLocationEnabled: true,
             ),
     );
   }
