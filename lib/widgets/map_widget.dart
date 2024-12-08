@@ -8,10 +8,10 @@ class MapWidget extends StatefulWidget {
   const MapWidget({super.key});
 
   @override
-  _MapWidgetState createState() => _MapWidgetState();
+  MapWidgetState createState() => MapWidgetState();
 }
 
-class _MapWidgetState extends State<MapWidget> {
+class MapWidgetState extends State<MapWidget> {
   late GoogleMapController _controller;
   final Set<Marker> _markers = {};
   final ChargerSpotsRepository _repository = ChargerSpotsRepository();
@@ -30,8 +30,23 @@ class _MapWidgetState extends State<MapWidget> {
     }
   }
 
+  void _moveCameraToCurrentLocation() {
+    if (_currentLocation != null) {
+      _controller.animateCamera(
+        CameraUpdate.newCameraPosition(
+          CameraPosition(
+            target: _currentLocation!,
+            zoom: 16,
+          ),
+        ),
+      );
+    }
+  }
+
   Future<void> _loadChargerSpots() async {
-    if (_currentLocation == null) return;
+    if (_currentLocation == null) {
+      return;
+    }
 
     final response = await _repository.getChargerSpots(
       swLat: _currentLocation!.latitude - 0.01,
@@ -62,22 +77,55 @@ class _MapWidgetState extends State<MapWidget> {
     });
   }
 
+  Future<void> _refreshChargerSpots() async {
+    // 現在地を再取得して近くのCharger Spotsを取得
+    _currentLocation = await LocationService.getCurrentLocation();
+    if (_currentLocation != null) {
+      await _loadChargerSpots();
+      _moveCameraToCurrentLocation();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: _currentLocation == null
-          ? const Center(child: CircularProgressIndicator())
-          : GoogleMap(
-              initialCameraPosition: CameraPosition(
-                target: _currentLocation!,
-                zoom: 16,
+    return Stack(
+      children: [
+        _currentLocation == null
+            ? const Center(child: CircularProgressIndicator())
+            : GoogleMap(
+                initialCameraPosition: CameraPosition(
+                  target: _currentLocation!,
+                  zoom: 16,
+                ),
+                markers: _markers,
+                onMapCreated: (GoogleMapController controller) {
+                  _controller = controller;
+                  _moveCameraToCurrentLocation();
+                },
+                myLocationEnabled: true,
               ),
-              markers: _markers,
-              onMapCreated: (GoogleMapController controller) {
-                _controller = controller;
-              },
-              myLocationEnabled: true,
+        Positioned(
+          top: 20,
+          left: 20,
+          right: 20,
+          child: ElevatedButton(
+            onPressed: _refreshChargerSpots,
+            style: ElevatedButton.styleFrom(
+              foregroundColor: Colors.green,
+              backgroundColor: const Color.fromARGB(255, 234, 248, 219),
             ),
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text('このエリアでスポットを検索'),
+                Spacer(),
+                Icon(Icons.search), // 虫眼鏡アイコン
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
