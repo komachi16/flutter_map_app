@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
+import '../charger_spot.dart';
 import '../charger_spots_repository.dart';
 import '../services/location_service.dart';
+import 'charger_spot_card.dart';
 
 class MapWidget extends StatefulWidget {
   const MapWidget({super.key});
@@ -16,6 +18,7 @@ class MapWidgetState extends State<MapWidget> {
   final Set<Marker> _markers = {};
   final ChargerSpotsRepository _repository = ChargerSpotsRepository();
   LatLng? _currentLocation;
+  List<ChargerSpot> _chargerSpots = [];
 
   @override
   void initState() {
@@ -57,6 +60,8 @@ class MapWidgetState extends State<MapWidget> {
 
     if (response.status == GetChargerSpotsStatus.ok) {
       setState(() {
+        _chargerSpots = response.spots;
+
         _markers.clear();
         for (final spot in response.spots) {
           _addMarker(spot.latitude, spot.longitude, spot.chargerDevices.length);
@@ -125,6 +130,36 @@ class MapWidgetState extends State<MapWidget> {
             ),
           ),
         ),
+        _chargerSpots.isNotEmpty
+            ? Positioned(
+                bottom: 0,
+                left: (MediaQuery.of(context).size.width - 365) / 2,
+                child: Container(
+                  width: 365,
+                  height: 272,
+                  padding: const EdgeInsets.all(8),
+                  decoration: const BoxDecoration(
+                    borderRadius:
+                        BorderRadius.vertical(top: Radius.circular(16)),
+                    boxShadow: [
+                      // BoxShadow(
+                      //   color: Colors.black26,
+                      //   blurRadius: 9,
+                      //   spreadRadius: 1,
+                      // ),
+                    ],
+                  ),
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: _chargerSpots.map((spot) {
+                        return ChargerSpotCard(spot: spot);
+                      }).toList(),
+                    ),
+                  ),
+                ),
+              )
+            : const SizedBox.shrink(),
       ],
     );
   }
