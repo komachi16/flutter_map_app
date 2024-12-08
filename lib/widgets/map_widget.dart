@@ -54,6 +54,7 @@ class _MapWidgetState extends State<MapWidget> {
     final marker = Marker(
       markerId: MarkerId('marker_$lat$lng'),
       position: LatLng(lat, lng),
+      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
     );
 
     setState(() {
