@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import '../charger_spot.dart';
 
 class ChargerSpotCard extends StatelessWidget {
@@ -10,87 +9,121 @@ class ChargerSpotCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       color: Colors.white,
-      child: SizedBox(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (spot.imageUrl != null)
-              SizedBox(
-                width: 365,
-                height: 72,
-                child: Image.network(
-                  spot.imageUrl!,
-                  fit: BoxFit.cover,
-                ),
-              ),
-            const SizedBox(height: 8),
-            Text(
-              spot.name,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.power, color: Colors.amber),
-                const SizedBox(width: 8),
-                Text('充電器数: ${spot.chargerDevices.length}台'),
-              ],
-            ),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.bolt, color: Colors.amber),
-                const SizedBox(width: 8),
-                Text(
-                    '充電出力: ${spot.chargerDevices.isNotEmpty ? '${spot.chargerDevices.map(
-                          (device) => device.power,
-                        ).join(', ')} kW' : '情報なし'}'),
-              ],
-            ),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.watch_later, color: Colors.amber),
-                const SizedBox(width: 8),
-                Text('営業時間: ${_getServiceTimes(spot.serviceTimes)}'),
-              ],
-            ),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.today, color: Colors.amber),
-                const SizedBox(width: 8),
-                Text('定休日: ${_getClosedDays(spot.serviceTimes)}'),
-              ],
-            ),
-            TextButton(
-              onPressed: () {
-                // Google Maps アプリで経路を表示する処理
-                final url =
-                    'https://www.google.com/maps/dir/?api=1&destination=${spot.latitude},${spot.longitude}';
-                // launch(url);
-              },
-              child: const Text('地図アプリで経路を見る'),
-            ),
-          ],
-        ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildImage(),
+          const SizedBox(height: 8),
+          _buildInfoColumn(),
+        ],
       ),
+    );
+  }
+
+  Widget _buildImage() {
+    return spot.imageUrl != null
+        ? SizedBox(
+            width: 365,
+            height: 72,
+            child: Image.network(
+              spot.imageUrl!,
+              fit: BoxFit.cover,
+            ),
+          )
+        : const SizedBox.shrink();
+  }
+
+  Widget _buildInfoColumn() {
+    return Padding(
+      padding: const EdgeInsets.only(left: 16),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSpotName(),
+          const SizedBox(height: 8),
+          _buildChargerCount(),
+          const SizedBox(height: 12),
+          _buildChargerPower(),
+          const SizedBox(height: 12),
+          _buildServiceTime(),
+          const SizedBox(height: 12),
+          _buildClosedDays(),
+          const SizedBox(height: 12),
+          _buildMapButton(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSpotName() {
+    return Text(
+      spot.name,
+      style: const TextStyle(
+        fontWeight: FontWeight.bold,
+        fontSize: 16,
+      ),
+    );
+  }
+
+  Widget _buildChargerCount() {
+    return _buildInfoRow(
+      icon: Icons.power,
+      text: '充電器数: ${spot.chargerDevices.length}台',
+    );
+  }
+
+  Widget _buildChargerPower() {
+    final powerInfo = spot.chargerDevices.isNotEmpty
+        ? '${spot.chargerDevices.map((device) => device.power).join(', ')} kW'
+        : '情報なし';
+    return _buildInfoRow(
+      icon: Icons.bolt,
+      text: '充電出力: $powerInfo',
+    );
+  }
+
+  Widget _buildServiceTime() {
+    return _buildInfoRow(
+      icon: Icons.watch_later,
+      text: '営業時間: ${_getServiceTimes(spot.serviceTimes)}',
+    );
+  }
+
+  Widget _buildClosedDays() {
+    return _buildInfoRow(
+      icon: Icons.today,
+      text: '定休日: ${_getClosedDays(spot.serviceTimes)}',
+    );
+  }
+
+  Widget _buildMapButton() {
+    return TextButton(
+      onPressed: () {
+        final url =
+            'https://www.google.com/maps/dir/?api=1&destination=${spot.latitude},${spot.longitude}';
+        // launch(url);
+      },
+      child: const Text('地図アプリで経路を見る'),
+    );
+  }
+
+  Widget _buildInfoRow({required IconData icon, required String text}) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        Icon(icon, color: Colors.amber),
+        const SizedBox(width: 8),
+        Text(text),
+      ],
     );
   }
 
   String _getServiceTimes(List<ServiceTime> serviceTimes) {
     final now = DateTime.now();
     final today = _getDayName(now.weekday);
-    // 今日の曜日に対応するサービス時間を取得
     for (final serviceTime in serviceTimes) {
       if (serviceTime.day == today) {
         return '${serviceTime.startTime} - ${serviceTime.endTime}';
@@ -112,7 +145,7 @@ class ChargerSpotCard extends StatelessWidget {
       case 5:
         return ServiceTimeDay.friday;
       case 6:
-        return ServiceTimeDay.thursday;
+        return ServiceTimeDay.saturday;
       case 7:
         return ServiceTimeDay.sunday;
     }
@@ -124,7 +157,6 @@ class ChargerSpotCard extends StatelessWidget {
         .where((time) => !time.businessDay)
         .map((time) => time.day.name)
         .toList();
-
-    return closedDays.isNotEmpty ? closedDays.join(', ') : '-';
+    return closedDays.isNotEmpty ? closedDays.join(', ') : '情報なし';
   }
 }
