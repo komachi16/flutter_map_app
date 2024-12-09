@@ -9,44 +9,80 @@ class ChargerSpotCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (spot.imageUrl != null)
-            SizedBox(
-              width: 365,
-              height: 72,
-              child: Image.network(
-                spot.imageUrl!,
-                fit: BoxFit.cover,
+      color: Colors.white,
+      child: SizedBox(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (spot.imageUrl != null)
+              SizedBox(
+                width: 365,
+                height: 72,
+                child: Image.network(
+                  spot.imageUrl!,
+                  fit: BoxFit.cover,
+                ),
+              ),
+            const SizedBox(height: 8),
+            Text(
+              spot.name,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
               ),
             ),
-          const SizedBox(height: 8),
-          Text(
-            spot.name,
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
+            const SizedBox(height: 4),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.power, color: Colors.amber),
+                const SizedBox(width: 8),
+                Text('充電器数: ${spot.chargerDevices.length}台'),
+              ],
             ),
-          ),
-          const SizedBox(height: 4),
-          Text('充電器数: ${spot.chargerDevices.length}台'),
-          Text(
-              '充電出力: ${spot.chargerDevices.isNotEmpty ? '${spot.chargerDevices.map(
-                    (device) => device.power,
-                  ).join(', ')} kW' : '情報なし'}'),
-          Text('営業時間: ${_getServiceTimes(spot.serviceTimes)}'),
-          Text('定休日: ${_getClosedDays(spot.serviceTimes)}'),
-          TextButton(
-            onPressed: () {
-              // Google Maps アプリで経路を表示する処理
-              final url =
-                  'https://www.google.com/maps/dir/?api=1&destination=${spot.latitude},${spot.longitude}';
-              // launch(url);
-            },
-            child: const Text('地図アプリで経路を見る'),
-          ),
-        ],
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.bolt, color: Colors.amber),
+                const SizedBox(width: 8),
+                Text(
+                    '充電出力: ${spot.chargerDevices.isNotEmpty ? '${spot.chargerDevices.map(
+                          (device) => device.power,
+                        ).join(', ')} kW' : '情報なし'}'),
+              ],
+            ),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.watch_later, color: Colors.amber),
+                const SizedBox(width: 8),
+                Text('営業時間: ${_getServiceTimes(spot.serviceTimes)}'),
+              ],
+            ),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.today, color: Colors.amber),
+                const SizedBox(width: 8),
+                Text('定休日: ${_getClosedDays(spot.serviceTimes)}'),
+              ],
+            ),
+            TextButton(
+              onPressed: () {
+                // Google Maps アプリで経路を表示する処理
+                final url =
+                    'https://www.google.com/maps/dir/?api=1&destination=${spot.latitude},${spot.longitude}';
+                // launch(url);
+              },
+              child: const Text('地図アプリで経路を見る'),
+            ),
+          ],
+        ),
       ),
     );
   }

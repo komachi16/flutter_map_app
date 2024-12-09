@@ -125,7 +125,7 @@ class MapWidgetState extends State<MapWidget> {
               children: [
                 Text('このエリアでスポットを検索'),
                 Spacer(),
-                Icon(Icons.search), // 虫眼鏡アイコン
+                Icon(Icons.search),
               ],
             ),
           ),
@@ -136,22 +136,15 @@ class MapWidgetState extends State<MapWidget> {
                 left: (MediaQuery.of(context).size.width - 365) / 2,
                 child: Container(
                   width: 365,
-                  height: 272,
                   padding: const EdgeInsets.all(8),
                   decoration: const BoxDecoration(
                     borderRadius:
                         BorderRadius.vertical(top: Radius.circular(16)),
-                    boxShadow: [
-                      // BoxShadow(
-                      //   color: Colors.black26,
-                      //   blurRadius: 9,
-                      //   spreadRadius: 1,
-                      // ),
-                    ],
                   ),
                   child: SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: _chargerSpots.map((spot) {
                         return ChargerSpotCard(spot: spot);
                       }).toList(),
