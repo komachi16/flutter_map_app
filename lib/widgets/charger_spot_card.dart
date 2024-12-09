@@ -70,7 +70,8 @@ class ChargerSpotCard extends StatelessWidget {
   Widget _buildChargerCount() {
     return _buildInfoRow(
       icon: Icons.power,
-      text: '充電器数: ${spot.chargerDevices.length}台',
+      title: '充電器数',
+      text: '${spot.chargerDevices.length}台',
     );
   }
 
@@ -80,7 +81,8 @@ class ChargerSpotCard extends StatelessWidget {
         : '情報なし';
     return _buildInfoRow(
       icon: Icons.bolt,
-      text: '充電出力: $powerInfo',
+      title: '充電出力',
+      text: powerInfo,
     );
   }
 
@@ -94,7 +96,8 @@ class ChargerSpotCard extends StatelessWidget {
   Widget _buildClosedDays() {
     return _buildInfoRow(
       icon: Icons.today,
-      text: '定休日: ${_getClosedDays(spot.serviceTimes)}',
+      title: '定休日',
+      text: _getClosedDays(spot.serviceTimes),
     );
   }
 
@@ -109,12 +112,18 @@ class ChargerSpotCard extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoRow({required IconData icon, required String text}) {
+  Widget _buildInfoRow({
+    required IconData icon,
+    required String title,
+    required String text,
+  }) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         Icon(icon, color: Colors.amber),
         const SizedBox(width: 8),
+        Text(title),
+        const SizedBox(width: 16),
         Text(text),
       ],
     );
@@ -190,6 +199,6 @@ class ChargerSpotCard extends StatelessWidget {
         .where((time) => !time.businessDay)
         .map((time) => time.day.name)
         .toList();
-    return closedDays.isNotEmpty ? closedDays.join(', ') : '情報なし';
+    return closedDays.isNotEmpty ? closedDays.join(', ') : '-';
   }
 }
