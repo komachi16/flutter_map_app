@@ -85,9 +85,9 @@ class ChargerSpotCard extends StatelessWidget {
   }
 
   Widget _buildServiceTime() {
-    return _buildInfoRow(
-      icon: Icons.watch_later,
-      text: '営業時間: ${_getServiceTimes(spot.serviceTimes)}',
+    return _buildServiceTimeRow(
+      text: _getServiceTimes(spot.serviceTimes),
+      isServiceTime: _getIsServiceTime(spot.serviceTimes),
     );
   }
 
@@ -112,13 +112,46 @@ class ChargerSpotCard extends StatelessWidget {
   Widget _buildInfoRow({required IconData icon, required String text}) {
     return Row(
       mainAxisSize: MainAxisSize.min,
-      mainAxisAlignment: MainAxisAlignment.start,
       children: [
         Icon(icon, color: Colors.amber),
         const SizedBox(width: 8),
         Text(text),
       ],
     );
+  }
+
+  Widget _buildServiceTimeRow({
+    required String text,
+    required bool isServiceTime,
+  }) {
+    final title = isServiceTime ? '営業中' : '営業時間外';
+    final titleColor = isServiceTime ? Colors.green : Colors.black38;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Icon(Icons.watch_later, color: Colors.amber),
+        const SizedBox(width: 8),
+        Text(
+          title,
+          style: TextStyle(
+            color: titleColor,
+          ),
+        ),
+        const SizedBox(width: 16),
+        Text(text),
+      ],
+    );
+  }
+
+  bool _getIsServiceTime(List<ServiceTime> serviceTimes) {
+    final now = DateTime.now();
+    final today = _getDayName(now.weekday);
+    for (final serviceTime in serviceTimes) {
+      if (serviceTime.day == today) {
+        return serviceTime.businessDay;
+      }
+    }
+    return false;
   }
 
   String _getServiceTimes(List<ServiceTime> serviceTimes) {
