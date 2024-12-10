@@ -133,10 +133,10 @@ class MapWidgetState extends State<MapWidget> {
         _chargerSpots.isNotEmpty
             ? Positioned(
                 bottom: 0,
-                left: (MediaQuery.of(context).size.width - 365) / 2,
+                left: 0,
+                right: 0,
                 child: Container(
-                  width: 365,
-                  padding: const EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(16),
                   decoration: const BoxDecoration(
                     borderRadius:
                         BorderRadius.vertical(top: Radius.circular(16)),
@@ -144,9 +144,11 @@ class MapWidgetState extends State<MapWidget> {
                   child: SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Row(
-                      mainAxisSize: MainAxisSize.min,
                       children: _chargerSpots.map((spot) {
-                        return ChargerSpotCard(spot: spot);
+                        return SizedBox(
+                          width: MediaQuery.of(context).size.width * 0.85,
+                          child: ChargerSpotCard(spot: spot),
+                        );
                       }).toList(),
                     ),
                   ),
