@@ -19,6 +19,7 @@ class MapWidgetState extends State<MapWidget> {
   final ChargerSpotsRepository _repository = ChargerSpotsRepository();
   LatLng? _currentLocation;
   List<ChargerSpot> _chargerSpots = [];
+  bool isMarkerSelected = false;
 
   @override
   void initState() {
@@ -75,6 +76,11 @@ class MapWidgetState extends State<MapWidget> {
       markerId: MarkerId('marker_$lat$lng'),
       position: LatLng(lat, lng),
       icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+      onTap: () {
+        setState(() {
+          isMarkerSelected = true;
+        });
+      },
     );
 
     setState(() {
@@ -135,21 +141,28 @@ class MapWidgetState extends State<MapWidget> {
                 bottom: 0,
                 left: 0,
                 right: 0,
-                child: Container(
-                  padding: const EdgeInsets.all(16),
+                child: DecoratedBox(
                   decoration: const BoxDecoration(
                     borderRadius:
                         BorderRadius.vertical(top: Radius.circular(16)),
                   ),
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: _chargerSpots.map((spot) {
-                        return SizedBox(
-                          width: MediaQuery.of(context).size.width * 0.85,
-                          child: ChargerSpotCard(spot: spot),
-                        );
-                      }).toList(),
+                  child: Transform.translate(
+                    offset:
+                        // TODO: 180ではなく、ChargerSpotCardから適切な高さを取得する
+                        isMarkerSelected ? Offset.zero : const Offset(0, 180),
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: _chargerSpots.map((spot) {
+                          return Padding(
+                            padding: const EdgeInsets.only(left: 16),
+                            child: SizedBox(
+                              width: MediaQuery.of(context).size.width * 0.85,
+                              child: ChargerSpotCard(spot: _chargerSpots[0]),
+                            ),
+                          );
+                        }).toList(),
+                      ),
                     ),
                   ),
                 ),
