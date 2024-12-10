@@ -21,6 +21,7 @@ class MapWidgetState extends State<MapWidget> {
   List<ChargerSpot> _chargerSpots = [];
   bool isMarkerSelected = false;
   final ScrollController _scrollController = ScrollController();
+  final double cellMovementRange = 180;
 
   @override
   void initState() {
@@ -122,6 +123,10 @@ class MapWidgetState extends State<MapWidget> {
         _currentLocation == null
             ? const Center(child: CircularProgressIndicator())
             : GoogleMap(
+                padding: EdgeInsets.only(
+                    bottom: isMarkerSelected
+                        ? 360
+                        : (_chargerSpots.isEmpty ? 0 : 140)),
                 initialCameraPosition: CameraPosition(
                   target: _currentLocation!,
                   zoom: 16,
@@ -165,8 +170,9 @@ class MapWidgetState extends State<MapWidget> {
                         BorderRadius.vertical(top: Radius.circular(16)),
                   ),
                   child: Transform.translate(
-                    offset:
-                        isMarkerSelected ? Offset.zero : const Offset(0, 180),
+                    offset: isMarkerSelected
+                        ? Offset.zero
+                        : Offset(0, cellMovementRange),
                     child: SingleChildScrollView(
                       controller: _scrollController, // ScrollControllerを指定
                       scrollDirection: Axis.horizontal,
