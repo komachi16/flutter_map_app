@@ -23,7 +23,11 @@ class ChargerSpotCard extends StatelessWidget {
 
   Widget _buildImage() {
     return spot.imageUrl != null
-        ? SizedBox(
+        ? Container(
+            clipBehavior: Clip.antiAlias,
+            decoration: const BoxDecoration(
+              borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+            ),
             width: 365,
             height: 72,
             child: Image.network(
