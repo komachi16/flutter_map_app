@@ -36,19 +36,6 @@ class MapWidgetState extends State<MapWidget> {
     }
   }
 
-  void _moveCameraToCurrentLocation() {
-    if (_currentLocation != null) {
-      _controller.animateCamera(
-        CameraUpdate.newCameraPosition(
-          CameraPosition(
-            target: _currentLocation!,
-            zoom: 16,
-          ),
-        ),
-      );
-    }
-  }
-
   Future<void> _loadChargerSpots() async {
     if (_currentLocation == null) {
       return;
@@ -64,42 +51,18 @@ class MapWidgetState extends State<MapWidget> {
     if (response.status == GetChargerSpotsStatus.ok) {
       setState(() {
         _chargerSpots = response.spots;
-
         _markers.clear();
-        for (final spot in response.spots) {
-          _addMarker(
-            spot.latitude,
-            spot.longitude,
-            spot.chargerDevices.length,
-            spot,
-          );
-        }
+        _chargerSpots.forEach(_addMarker);
       });
     }
   }
 
-  void _addMarker(double lat, double lng, int chargerCount, ChargerSpot spot) {
+  void _addMarker(ChargerSpot spot) {
     final marker = Marker(
-      markerId: MarkerId('marker_$lat$lng'),
-      position: LatLng(lat, lng),
+      markerId: MarkerId('marker_${spot.latitude}_${spot.longitude}'),
+      position: LatLng(spot.latitude, spot.longitude),
       icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
-      onTap: () {
-        setState(() {
-          isMarkerSelected = true;
-        });
-
-        // スクロール位置を調整
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          final index = _chargerSpots.indexOf(spot);
-          final offset = index *
-              (MediaQuery.of(context).size.width * 0.85 + 16); // カードの幅と余白を考慮
-          _scrollController.animateTo(
-            offset,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeInOut,
-          );
-        });
-      },
+      onTap: () => _onMarkerTapped(spot),
     );
 
     setState(() {
@@ -107,8 +70,23 @@ class MapWidgetState extends State<MapWidget> {
     });
   }
 
+  void _onMarkerTapped(ChargerSpot spot) {
+    setState(() {
+      isMarkerSelected = true;
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final index = _chargerSpots.indexOf(spot);
+      final offset = index * (MediaQuery.of(context).size.width * 0.85 + 16);
+      _scrollController.animateTo(
+        offset,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    });
+  }
+
   Future<void> _refreshChargerSpots() async {
-    // 現在地を再取得して近くのCharger Spotsを取得
     _currentLocation = await LocationService.getCurrentLocation();
     if (_currentLocation != null) {
       await _loadChargerSpots();
@@ -116,85 +94,107 @@ class MapWidgetState extends State<MapWidget> {
     }
   }
 
+  void _moveCameraToCurrentLocation() {
+    if (_currentLocation != null) {
+      _controller.animateCamera(
+        CameraUpdate.newCameraPosition(
+          CameraPosition(
+            target: _currentLocation!,
+            zoom: 16,
+          ),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        _currentLocation == null
-            ? const Center(child: CircularProgressIndicator())
-            : GoogleMap(
-                padding: EdgeInsets.only(
-                    bottom: isMarkerSelected
-                        ? 360
-                        : (_chargerSpots.isEmpty ? 0 : 140)),
-                initialCameraPosition: CameraPosition(
-                  target: _currentLocation!,
-                  zoom: 16,
-                ),
-                markers: _markers,
-                onMapCreated: (GoogleMapController controller) {
-                  _controller = controller;
-                  _moveCameraToCurrentLocation();
-                },
-                myLocationEnabled: true,
-              ),
-        Positioned(
-          top: 20,
-          left: 20,
-          right: 20,
-          child: ElevatedButton(
-            onPressed: _refreshChargerSpots,
-            style: ElevatedButton.styleFrom(
-              foregroundColor: Colors.green,
-              backgroundColor: const Color.fromARGB(255, 234, 248, 219),
+        _buildMap(),
+        _buildSearchButton(),
+        _buildChargerSpotCards(),
+      ],
+    );
+  }
+
+  Widget _buildMap() {
+    return _currentLocation == null
+        ? const Center(child: CircularProgressIndicator())
+        : GoogleMap(
+            padding: EdgeInsets.only(
+              bottom:
+                  isMarkerSelected ? 360 : (_chargerSpots.isEmpty ? 0 : 140),
             ),
-            child: const Row(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text('このエリアでスポットを検索'),
-                Spacer(),
-                Icon(Icons.search),
-              ],
+            initialCameraPosition: CameraPosition(
+              target: _currentLocation!,
+              zoom: 16,
+            ),
+            markers: _markers,
+            onMapCreated: (GoogleMapController controller) {
+              _controller = controller;
+              _moveCameraToCurrentLocation();
+            },
+            myLocationEnabled: true,
+          );
+  }
+
+  Widget _buildSearchButton() {
+    return Positioned(
+      top: 20,
+      left: 20,
+      right: 20,
+      child: ElevatedButton(
+        onPressed: _refreshChargerSpots,
+        style: ElevatedButton.styleFrom(
+          foregroundColor: Colors.green,
+          backgroundColor: const Color.fromARGB(255, 234, 248, 219),
+        ),
+        child: const Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text('このエリアでスポットを検索'),
+            Spacer(),
+            Icon(Icons.search),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildChargerSpotCards() {
+    if (_chargerSpots.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Positioned(
+      bottom: 0,
+      left: 0,
+      right: 0,
+      child: DecoratedBox(
+        decoration: const BoxDecoration(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        ),
+        child: Transform.translate(
+          offset: isMarkerSelected ? Offset.zero : Offset(0, cellMovementRange),
+          child: SingleChildScrollView(
+            controller: _scrollController,
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: _chargerSpots.map((spot) {
+                return Padding(
+                  padding: const EdgeInsets.only(left: 16),
+                  child: SizedBox(
+                    width: MediaQuery.of(context).size.width * 0.85,
+                    child: ChargerSpotCard(spot: spot),
+                  ),
+                );
+              }).toList(),
             ),
           ),
         ),
-        _chargerSpots.isNotEmpty
-            ? Positioned(
-                bottom: 0,
-                left: 0,
-                right: 0,
-                child: DecoratedBox(
-                  decoration: const BoxDecoration(
-                    borderRadius:
-                        BorderRadius.vertical(top: Radius.circular(16)),
-                  ),
-                  child: Transform.translate(
-                    offset: isMarkerSelected
-                        ? Offset.zero
-                        : Offset(0, cellMovementRange),
-                    child: SingleChildScrollView(
-                      controller: _scrollController, // ScrollControllerを指定
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: [
-                          ..._chargerSpots.map((spot) {
-                            return Padding(
-                              padding: const EdgeInsets.only(left: 16),
-                              child: SizedBox(
-                                width: MediaQuery.of(context).size.width * 0.85,
-                                child: ChargerSpotCard(spot: spot),
-                              ),
-                            );
-                          }),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              )
-            : const SizedBox.shrink(),
-      ],
+      ),
     );
   }
 }
