@@ -20,6 +20,7 @@ class MapWidgetState extends State<MapWidget> {
   LatLng? _currentLocation;
   List<ChargerSpot> _chargerSpots = [];
   bool isMarkerSelected = false;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -65,13 +66,18 @@ class MapWidgetState extends State<MapWidget> {
 
         _markers.clear();
         for (final spot in response.spots) {
-          _addMarker(spot.latitude, spot.longitude, spot.chargerDevices.length);
+          _addMarker(
+            spot.latitude,
+            spot.longitude,
+            spot.chargerDevices.length,
+            spot,
+          );
         }
       });
     }
   }
 
-  void _addMarker(double lat, double lng, int chargerCount) {
+  void _addMarker(double lat, double lng, int chargerCount, ChargerSpot spot) {
     final marker = Marker(
       markerId: MarkerId('marker_$lat$lng'),
       position: LatLng(lat, lng),
@@ -79,6 +85,18 @@ class MapWidgetState extends State<MapWidget> {
       onTap: () {
         setState(() {
           isMarkerSelected = true;
+        });
+
+        // スクロール位置を調整
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          final index = _chargerSpots.indexOf(spot);
+          final offset = index *
+              (MediaQuery.of(context).size.width * 0.85 + 16); // カードの幅と余白を考慮
+          _scrollController.animateTo(
+            offset,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+          );
         });
       },
     );
@@ -148,20 +166,22 @@ class MapWidgetState extends State<MapWidget> {
                   ),
                   child: Transform.translate(
                     offset:
-                        // TODO: 180ではなく、ChargerSpotCardから適切な高さを取得する
                         isMarkerSelected ? Offset.zero : const Offset(0, 180),
                     child: SingleChildScrollView(
+                      controller: _scrollController, // ScrollControllerを指定
                       scrollDirection: Axis.horizontal,
                       child: Row(
-                        children: _chargerSpots.map((spot) {
-                          return Padding(
-                            padding: const EdgeInsets.only(left: 16),
-                            child: SizedBox(
-                              width: MediaQuery.of(context).size.width * 0.85,
-                              child: ChargerSpotCard(spot: _chargerSpots[0]),
-                            ),
-                          );
-                        }).toList(),
+                        children: [
+                          ..._chargerSpots.map((spot) {
+                            return Padding(
+                              padding: const EdgeInsets.only(left: 16),
+                              child: SizedBox(
+                                width: MediaQuery.of(context).size.width * 0.85,
+                                child: ChargerSpotCard(spot: spot),
+                              ),
+                            );
+                          }),
+                        ],
                       ),
                     ),
                   ),
