@@ -156,7 +156,7 @@ class MapWidgetState extends State<MapWidget> {
 
   Widget _buildSearchButton() {
     return Positioned(
-      top: 20,
+      top: 50,
       left: 20,
       right: 20,
       child: ElevatedButton(
@@ -184,7 +184,7 @@ class MapWidgetState extends State<MapWidget> {
     }
 
     return Positioned(
-      bottom: 0,
+      bottom: 20,
       left: 0,
       right: 0,
       child: DecoratedBox(
