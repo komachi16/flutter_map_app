@@ -87,10 +87,25 @@ class MapWidgetState extends State<MapWidget> {
   }
 
   Future<void> _refreshChargerSpots() async {
-    _currentLocation = await LocationService.getCurrentLocation();
-    if (_currentLocation != null) {
-      await _loadChargerSpots();
-      _moveCameraToCurrentLocation();
+    try {
+      _currentLocation = await LocationService.getCurrentLocation();
+      if (mounted) {
+        if (_currentLocation != null) {
+          await _loadChargerSpots();
+          _moveCameraToCurrentLocation();
+        } else {
+          // 現在地が取得できなかった場合の処理
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('現在地を取得できませんでした。')),
+          );
+        }
+      }
+    } on Exception catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('エラーが発生しました: $error')),
+        );
+      }
     }
   }
 
