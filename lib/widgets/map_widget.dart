@@ -151,6 +151,9 @@ class MapWidgetState extends State<MapWidget> {
               _moveCameraToCurrentLocation();
             },
             myLocationEnabled: true,
+            // Androidにのみ表示される標準UIを非表示
+            mapToolbarEnabled: false,
+            zoomControlsEnabled: false,
           );
   }
 
