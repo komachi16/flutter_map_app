@@ -51,24 +51,26 @@ class MapWidgetState extends State<MapWidget> {
 
     if (response.status == GetChargerSpotsStatus.ok) {
       setState(() {
-        _markers.clear();
         _chargerSpots = response.spots;
-        _chargerSpots.forEach(_addMarker);
+        _updateMarkers();
       });
     }
   }
 
-  void _addMarker(ChargerSpot spot) {
-    final marker = Marker(
+  void _updateMarkers() {
+    _markers.clear();
+    for (final spot in _chargerSpots) {
+      _markers.add(_createMarker(spot));
+    }
+  }
+
+  Marker _createMarker(ChargerSpot spot) {
+    return Marker(
       markerId: MarkerId('marker_${spot.latitude}_${spot.longitude}'),
       position: LatLng(spot.latitude, spot.longitude),
       icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
       onTap: () => _onMarkerTapped(spot),
     );
-
-    setState(() {
-      _markers.add(marker);
-    });
   }
 
   void _onMarkerTapped(ChargerSpot spot) {
