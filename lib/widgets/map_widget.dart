@@ -129,8 +129,9 @@ class MapWidgetState extends State<MapWidget> {
             onMapCreated: (GoogleMapController controller) {
               _controller = controller;
               _moveCameraToCurrentLocation();
-              // マップが作成された後にチャージスポットを取得
-              _loadChargerSpotsInVisibleRegion();
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                _loadChargerSpotsInVisibleRegion();
+              });
             },
             myLocationEnabled: true,
             // Androidにのみ表示される標準UIを非表示
