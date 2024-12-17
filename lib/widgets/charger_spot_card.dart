@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+
 import '../charger_spot.dart';
+import '../utils/asset_images.dart';
 
 class ChargerSpotCard extends StatelessWidget {
   const ChargerSpotCard({super.key, required this.spot});
@@ -22,20 +25,34 @@ class ChargerSpotCard extends StatelessWidget {
   }
 
   Widget _buildImage() {
-    return spot.imageUrl != null
-        ? Container(
-            clipBehavior: Clip.antiAlias,
-            decoration: const BoxDecoration(
-              borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-            ),
-            width: 365,
-            height: 72,
-            child: Image.network(
-              spot.imageUrl!,
-              fit: BoxFit.cover,
-            ),
-          )
-        : const SizedBox.shrink();
+    return Container(
+      clipBehavior: Clip.antiAlias,
+      decoration: const BoxDecoration(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      width: 365,
+      height: 72,
+      child: spot.imageUrl != null
+          ? _buildNetworkImage(spot.imageUrl!)
+          : _buildDefaultImage(),
+    );
+  }
+
+  Widget _buildNetworkImage(String imageUrl) {
+    return Image.network(
+      imageUrl,
+      fit: BoxFit.cover,
+      errorBuilder:
+          (BuildContext context, Object error, StackTrace? stackTrace) {
+        return _buildDefaultImage();
+      },
+    );
+  }
+
+  Widget _buildDefaultImage() {
+    return SvgPicture.asset(
+      AssetImages.defaultImage,
+    );
   }
 
   Widget _buildInfoColumn() {
