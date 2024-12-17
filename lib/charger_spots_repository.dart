@@ -3,7 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_map_app/charger_spot.dart';
+import 'charger_spot.dart';
 
 /// 充電スポット取得のステータス
 enum GetChargerSpotsStatus {
@@ -42,19 +42,21 @@ class ChargerSpotsRepository {
     required double neLat,
     required double neLng,
   }) async {
-    final List<ChargerSpot> spots = _spots ??
+    final spots = _spots ??
         (jsonDecode(await rootBundle.loadString('assets/spots.json')) as List)
             .map((e) => ChargerSpot.fromJson(e as Map<String, dynamic>))
             .toList();
 
-    await Future.delayed(Duration(milliseconds: Random().nextInt(400)));
+    await Future<void>.delayed(Duration(milliseconds: Random().nextInt(400)));
 
     final spotsInRegion = spots
-        .where((spot) =>
-            spot.latitude >= swLat &&
-            spot.latitude <= neLat &&
-            spot.longitude >= swLng &&
-            spot.longitude <= neLng)
+        .where(
+          (spot) =>
+              spot.latitude >= swLat &&
+              spot.latitude <= neLat &&
+              spot.longitude >= swLng &&
+              spot.longitude <= neLng,
+        )
         .toList();
     return spotsInRegion.length > 100
         ? const GetChargerSpotsResponse(
